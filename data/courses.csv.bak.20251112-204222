@@ -1,0 +1,25 @@
+# Stop Streamlit first (Ctrl+C) if running.
+
+# 1) Backup existing file if present
+if (Test-Path data\courses.csv) {
+  $t = Get-Date -Format "yyyyMMdd-HHmmss"
+  Copy-Item data\courses.csv data\courses.csv.bak.$t
+  Write-Host "Backed up original to: data\courses.csv.bak.$t"
+} else {
+  New-Item -ItemType Directory -Path data | Out-Null
+}
+
+# 2) Overwrite with a clean header + sample rows (no stray commas)
+@"
+id,title,description,instructor,thumbnail,asset_path
+1,Python for Beginners,Learn Python fundamentals: variables control flow and functions.,A. Kumar,,
+2,Web Development with HTML/CSS,Build responsive websites using HTML and CSS.,R. Sharma,,
+3,JavaScript Essentials,Core JavaScript concepts and DOM manipulation.,S. Patel,,
+4,Data Analysis with Pandas,Pandas basics: dataframes filtering grouping and plotting.,L. Verma,,
+5,Introduction to Machine Learning,Supervised and unsupervised learning concepts and workflows.,M. Rao,,
+6,Database Design (SQL),Design relational schemas and query with SQL.,N. Singh,,
+7,DevOps Fundamentals,CI/CD containers and deployment basics.,P. Kumar,,
+"@ | Out-File -Encoding UTF8 data\courses.csv -Force
+
+Write-Host "`nWrote clean data\courses.csv. Current contents:"
+Get-Content data\courses.csv

@@ -1,0 +1,53 @@
+# Run in your project root (where data\courses.csv lives)
+# This script will add several real sample courses to data\courses.csv (if not already present)
+
+# Ensure data folder and file exist with header
+if (!(Test-Path data)) { New-Item -ItemType Directory data | Out-Null }
+$courseFile = "data\courses.csv"
+if (!(Test-Path $courseFile)) {
+    "id,title,description,instructor,thumbnail,asset_path" | Out-File -Encoding utf8 $courseFile
+}
+
+# Load existing CSV
+$courses = @()
+try {
+    $courses = Import-Csv $courseFile
+} catch {
+    # if file is empty or invalid, create header
+    "id,title,description,instructor,thumbnail,asset_path" | Out-File -Encoding utf8 $courseFile
+    $courses = Import-Csv $courseFile
+}
+
+# Determine starting ID
+if ($courses.Count -eq 0) { $nextId = 1 } else {
+    $ids = $courses | Where-Object { $_.id -match '^\d+$' } | ForEach-Object { [int]$_.id }
+    if ($ids) { $nextId = ($ids | Measure-Object -Maximum).Maximum + 1 } else { $nextId = 1 }
+}
+
+# Define sample courses (title,description,instructor)
+$samples = @(
+    @{ title = "Python for Beginners"; description = "Learn Python fundamentals: variables, control flow, functions."; instructor = "A. Kumar" },
+    @{ title = "Web Development with HTML/CSS"; description = "Build responsive websites using HTML and CSS."; instructor = "R. Sharma" },
+    @{ title = "JavaScript Essentials"; description = "Core JavaScript concepts and DOM manipulation."; instructor = "S. Patel" },
+    @{ title = "Data Analysis with Pandas"; description = "Pandas basics: dataframes, filtering, grouping, plotting."; instructor = "L. Verma" },
+    @{ title = "Introduction to Machine Learning"; description = "Supervised & unsupervised learning concepts and workflows."; instructor = "M. Rao" },
+    @{ title = "Database Design (SQL)"; description = "Design relational schemas and query with SQL."; instructor = "N. Singh" },
+    @{ title = "DevOps Fundamentals"; description = "CI/CD, containers, and deployment basics."; instructor = "P. Kumar" }
+)
+
+# Append samples that are not already present by title
+$existingTitles = $courses | ForEach-Object { $_.title } 
+foreach ($s in $samples) {
+    if ($existingTitles -contains $s.title) {
+        Write-Host "Skipping existing course: $($s.title)"
+        continue
+    }
+    $line = "{0},{1},{2},{3},," -f $nextId, ($s.title -replace ',', ' -'), ($s.description -replace ',', ' -'), ($s.instructor -replace ',', ' -')
+    $line | Out-File -Encoding utf8 -Append $courseFile
+    Write-Host "Added course id $nextId : $($s.title)"
+    $nextId++
+}
+
+# Show current courses.csv
+Write-Host "`nCurrent contents of $courseFile:`n"
+Get-Content $courseFile

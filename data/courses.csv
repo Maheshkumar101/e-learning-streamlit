@@ -1,0 +1,9 @@
+id,title,description,instructor,thumbnail,asset_path
+1,Python for Beginners,Learn Python fundamentals variables control flow and functions,A. Kumar,,
+2,Web Development with HTML and CSS,Build responsive websites using HTML and CSS,R. Sharma,,
+3,JavaScript Essentials,Core JavaScript concepts and DOM manipulation,S. Patel,,
+4,Data Analysis with Pandas,Pandas basics dataframes filtering grouping and plotting,L. Verma,,
+5,Introduction to Machine Learning,Supervised and unsupervised learning concepts and workflows,M. Rao,,
+6,Database Design SQL,Design relational schemas and query with SQL,N. Singh,,
+7,DevOps Fundamentals,CI/CD containers and deployment basics,P. Kumar,,
+8,ai,ai is good for health,mahesh,,assets/gate sylallabus.pdf

@@ -1,0 +1,18 @@
+# create .gitignore
+@"
+.venv/
+__pycache__/
+data/*.csv
+.env
+*.pyc
+streamlit_log.txt
+"@ | Out-File -Encoding utf8 .gitignore -Force
+
+# init git, commit, push (replace <your-repo-url>)
+git init
+git add .
+git commit -m "Initial e-learning-streamlit project"
+# create a repo on GitHub and then:
+git remote add origin https://github.com/<your-username>/<repo-name>.git
+git branch -M main
+git push -u origin main

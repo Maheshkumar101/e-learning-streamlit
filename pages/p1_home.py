@@ -7,26 +7,26 @@ from utils.data_io import load_courses
 
 
 def _svg_placeholder_dataurl(label="No image"):
-    # simple gray SVG with label centered
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="600" height="360">
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450">
       <rect width="100%" height="100%" fill="#F1F5F9"/>
-      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#64748B" font-family="Arial, sans-serif" font-size="26">{label}</text>
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#64748B" font-family="Arial, sans-serif" font-size="28">{label}</text>
     </svg>'''
     return "data:image/svg+xml;utf8," + urllib.parse.quote(svg)
 
 
 def _choose_thumb(thumb, title):
-    if thumb and isinstance(thumb, str) and thumb.strip():
-        # local file?
-        try:
+    # safe coercion and fallback to SVG placeholder with course title
+    try:
+        if thumb and isinstance(thumb, str) and thumb.strip():
+            # prefer local file if exists
             if os.path.exists(thumb):
                 return thumb
-        except Exception:
-            pass
-        # otherwise assume thumb is URL
-        return thumb
-    # fallback placeholder with title as label
-    return _svg_placeholder_dataurl(label=title[:30] or "No image")
+            # else assume it's a URL
+            return thumb
+    except Exception:
+        pass
+    # fallback
+    return _svg_placeholder_dataurl(label=(title[:28] or "No image"))
 
 
 def app(user=None):
@@ -35,24 +35,20 @@ def app(user=None):
                 if user else None), unsafe_allow_html=True)
 
     st.title("Welcome to E-Learn")
-    st.write(
-        "A small e-learning demo — browse courses, enroll, and download materials.")
+    st.write("Browse featured courses or go to Courses to see the full catalog.")
 
     courses = load_courses()
     if courses.empty:
-        st.info("No courses available yet. Ask an admin to add courses in Admin page.")
+        st.info("No courses available yet. Admin can add courses from the Admin page.")
         return
 
-    st.header("Featured courses")
     featured = courses.head(4).reset_index(drop=True)
     cols = st.columns(2, gap="large")
     for i, (_, row) in enumerate(featured.iterrows()):
         col = cols[i % 2]
-        title = row.get("title") if hasattr(row, "get") else row["title"]
-        desc = row.get("description") if hasattr(
-            row, "get") else row["description"]
-        thumb = row.get("thumbnail") if hasattr(
-            row, "get") else row["thumbnail"]
+        title = row.get("title") or "Untitled Course"
+        desc = row.get("description") or ""
+        thumb = row.get("thumbnail") if "thumbnail" in row else None
         thumb_url = _choose_thumb(thumb, title)
         with col:
             st.markdown(course_card_html(title=title, description=desc,

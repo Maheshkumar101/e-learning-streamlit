@@ -16,13 +16,13 @@ def _svg_placeholder_dataurl(label="No image"):
 
 
 def _choose_thumb(thumb, title):
-    if thumb and isinstance(thumb, str) and thumb.strip():
-        try:
+    try:
+        if thumb and isinstance(thumb, str) and thumb.strip():
             if os.path.exists(thumb):
                 return thumb
-        except Exception:
-            pass
-        return thumb
+            return thumb
+    except Exception:
+        pass
     return _svg_placeholder_dataurl(label=(title[:30] or "No image"))
 
 
@@ -48,29 +48,37 @@ def app(user=None):
         st.info("You haven't enrolled in any courses yet.")
         return
 
-    # Show as grid (2 columns)
+    # Render as 2-column grid
     cols = st.columns(2, gap="large")
     for i, (_, row) in enumerate(df.iterrows()):
         with cols[i % 2]:
-            title = row.get("title")
-            desc = row.get("description")
+            title = row.get("title") or "Untitled Course"
+            desc = row.get("description") or ""
             thumb = row.get("thumbnail")
             asset = row.get("asset_path")
             thumb_url = _choose_thumb(thumb, title)
+
             st.markdown(course_card_html(title=title, description=desc,
                         thumbnail_url=thumb_url), unsafe_allow_html=True)
 
-            if asset and isinstance(asset, str) and asset.strip() and os.path.exists(asset):
+            if asset and isinstance(asset, str) and asset.strip():
                 try:
-                    with open(asset, "rb") as f:
-                        data = f.read()
-                    st.download_button("📥 Download PDF", data=data, file_name=os.path.basename(
-                        asset), mime="application/pdf", key=f"mydl-{row['id']}")
-                    if len(data) <= 5 * 1024 * 1024:
-                        b64 = base64.b64encode(data).decode("utf-8")
-                        href = f'<a href="data:application/pdf;base64,{b64}" target="_blank">🔗 Open PDF in new tab</a>'
-                        st.markdown(href, unsafe_allow_html=True)
+                    if os.path.exists(asset):
+                        with open(asset, "rb") as f:
+                            data = f.read()
+                        st.download_button("📥 Download PDF", data=data, file_name=os.path.basename(
+                            asset), mime="application/pdf", key=f"mydl-{row['id']}")
+                        if len(data) <= 5 * 1024 * 1024:
+                            b64 = base64.b64encode(data).decode("utf-8")
+                            href = f'<a href="data:application/pdf;base64,{b64}" target="_blank">🔗 Open PDF in new tab</a>'
+                            st.markdown(href, unsafe_allow_html=True)
+                        else:
+                            st.caption("File is large; please download.")
                     else:
-                        st.caption("Large file; please download to open.")
+                        # assume URL
+                        st.markdown(
+                            f"[📥 Download]({asset})", unsafe_allow_html=True)
+                        st.markdown(
+                            f'<a href="{asset}" target="_blank">🔗 Open in new tab</a>', unsafe_allow_html=True)
                 except Exception:
                     st.warning("Unable to open attached file.")
